@@ -152,3 +152,5 @@ if __name__ == '__main__':
 
     # Запускаем сервер на всех интерфейсах, на порту 5000
     serve(app, host='0.0.0.0', port=5000)
+
+# docker-compose up -d --build
