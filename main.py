@@ -2,21 +2,17 @@ import time
 import requests
 import threading
 
+from waitress import serve
 from flask import Flask, request
 
 app = Flask(__name__)
-
-
-# Переменная для хранения данных
-data = {}
-
 
 
 # Функция для получения данных с сайта
 def get_data_from_site():
     global data
 
-    login_data={}
+    login_data = {}
     # Получаем данные для авторизации в Mapix
     with open('credentials.txt', 'r') as file:
         for line in file:
@@ -33,7 +29,6 @@ def get_data_from_site():
             elif line.startswith('password='):
                 login_data['password'] = line.split('=')[1]
 
-
     # Создаем сессию
     session = requests.Session()
 
@@ -41,7 +36,7 @@ def get_data_from_site():
     response = session.post(auth_url, data=login_data)
 
     # Проверяем, успешно ли выполнена авторизация
-    if response.status_code == 200 and "логин" not in response.text.lower():
+    if response.status_code == 200 and 'логин' not in response.text.lower():
 
         # Теперь выполняем запрос на API
         api_response = session.get(api_url)
@@ -51,11 +46,11 @@ def get_data_from_site():
             try:
                 data = api_response.json()  # Сохраняем данные
             except ValueError:
-                print("Ответ от сервера не является валидным JSON.")
+                print('Ответ от сервера не является валидным JSON.')
         else:
-            print("Ошибка при запросе к API:", api_response.status_code)
+            print('Ошибка при запросе к API:', api_response.status_code)
     else:
-        print("Ошибка авторизации или редирект на страницу логина. Ответ от сервера:")
+        print('Ошибка авторизации или редирект на страницу логина. Ответ от сервера:')
         print(response.text)
 
 
@@ -63,13 +58,7 @@ def get_data_from_site():
 def periodic_data_update():
     while True:
         get_data_from_site()
-        time.sleep(300)  # 300 секунд = 5 минут
-
-
-# Запуск фоновой задачи для обновления данных
-thread = threading.Thread(target=periodic_data_update)
-thread.daemon = True
-thread.start()
+        time.sleep(300)
 
 
 # Обработчик маршрута /get_coordinates/longitude
@@ -79,14 +68,7 @@ def get_coordinates_longitude():
     number = request.args.get('number')
 
     if number is None:
-        return "Number parameter is required", 400
-
-    # Декодируем строку в случае некорректной кодировки
-    try:
-        # Важно декодировать строку в правильной кодировке
-        number = number.encode('latin1').decode('utf-8')
-    except Exception as e:
-        return "Error decoding number parameter: " + str(e), 400
+        return 'Number parameter is required', 400
 
     # Проходим по данным и ищем номер
     for key, value in data.items():
@@ -96,7 +78,7 @@ def get_coordinates_longitude():
                 return str(float(entry['ln']))
 
     # Если номер не найден
-    return "Number not found", 404
+    return 'Number not found', 404
 
 
 # Обработчик маршрута /get_coordinates/latitude
@@ -106,14 +88,7 @@ def get_coordinates_latitude():
     number = request.args.get('number')
 
     if number is None:
-        return "Number parameter is required", 400
-
-    # Декодируем строку в случае некорректной кодировки
-    try:
-        # Важно декодировать строку в правильной кодировке
-        number = number.encode('latin1').decode('utf-8')
-    except Exception as e:
-        return "Error decoding number parameter: " + str(e), 400
+        return 'Number parameter is required', 400
 
     # Проходим по данным и ищем номер
     for key, value in data.items():
@@ -123,7 +98,7 @@ def get_coordinates_latitude():
                 return str(float(entry['la']))
 
     # Если номер не найден
-    return "Number not found", 404
+    return 'Number not found', 404
 
 
 # Обработчик маршрута /get_speed
@@ -133,14 +108,7 @@ def get_speed():
     number = request.args.get('number')
 
     if number is None:
-        return "Number parameter is required", 400
-
-    # Декодируем строку в случае некорректной кодировки
-    try:
-        # Важно декодировать строку в правильной кодировке
-        number = number.encode('latin1').decode('utf-8')
-    except Exception as e:
-        return "Error decoding number parameter: " + str(e), 400
+        return 'Number parameter is required', 400
 
     # Проходим по данным и ищем номер
     for key, value in data.items():
@@ -150,7 +118,7 @@ def get_speed():
                 return str(float(entry['s']))
 
     # Если номер не найден
-    return "Number not found", 404
+    return 'Number not found', 404
 
 
 # Обработчик маршрута /get_ignition
@@ -160,14 +128,7 @@ def get_ignition():
     number = request.args.get('number')
 
     if number is None:
-        return "Number parameter is required", 400
-
-    # Декодируем строку в случае некорректной кодировки
-    try:
-        # Важно декодировать строку в правильной кодировке
-        number = number.encode('latin1').decode('utf-8')
-    except Exception as e:
-        return "Error decoding number parameter: " + str(e), 400
+        return 'Number parameter is required', 400
 
     # Проходим по данным и ищем номер
     for key, value in data.items():
@@ -177,9 +138,17 @@ def get_ignition():
                 return str(float(entry['i']))
 
     # Если номер не найден
-    return "Number not found", 404
+    return 'Number not found', 404
 
 
 if __name__ == '__main__':
-    # Запускаем сервер на всех интерфейсах, порту 5000
-    app.run(host='0.0.0.0', port=5000)
+    # Переменная для хранения данных
+    data = {}
+
+    # Запуск фоновой задачи для обновления данных
+    thread = threading.Thread(target=periodic_data_update)
+    thread.daemon = True
+    thread.start()
+
+    # Запускаем сервер на всех интерфейсах, на порту 5000
+    serve(app, host='0.0.0.0', port=5000)
