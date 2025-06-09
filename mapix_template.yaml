@@ -1,0 +1,64 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: b9d43828817147f58b37cc138f479640
+      name: 'by d.bogach/Авто'
+  templates:
+    - uuid: ac0180f739f3424da18e3e2a146ce997
+      template: mapix_api
+      name: 'Mapix API'
+      description: 'by d.bogach'
+      groups:
+        - name: 'by d.bogach/Авто'
+      items:
+        - uuid: fe93caafb42e445d860e36298423b24e
+          name: Зажигание
+          type: HTTP_AGENT
+          key: ignition
+          history: 1d
+          trends: 1w
+          valuemap:
+            name: 'Статус зажигания'
+          url: 'http://{$IP}:{$MAPIX_PORT}/get_ignition?number={$AUTO_NUMBER}'
+        - uuid: 03dbb82d1b6e433695d0b84d92cee213
+          name: Широта
+          type: HTTP_AGENT
+          key: latitude
+          history: 1d
+          value_type: FLOAT
+          trends: '0'
+          inventory_link: LOCATION_LAT
+          url: 'http://{$IP}:{$MAPIX_PORT}/get_coordinates/latitude?number={$AUTO_NUMBER}'
+        - uuid: 0b3e56e8a9c04980b83c2d9b8bc83163
+          name: Долгота
+          type: HTTP_AGENT
+          key: longitude
+          history: 1d
+          value_type: FLOAT
+          trends: '0'
+          inventory_link: LOCATION_LON
+          url: 'http://{$IP}:{$MAPIX_PORT}/get_coordinates/longitude?number={$AUTO_NUMBER}'
+        - uuid: 577f15d74b2849bc9ec7a6d6bbdba2b1
+          name: 'Скорость движения авто'
+          type: HTTP_AGENT
+          key: speed
+          history: 1d
+          trends: 30d
+          units: км/ч
+          url: 'http://{$IP}:{$MAPIX_PORT}/get_speed?number={$AUTO_NUMBER}'
+      macros:
+        - macro: '{$AUTO_NUMBER}'
+        - macro: '{$IP}'
+          value: 192.168.45.109
+        - macro: '{$MAPIX_PORT}'
+          value: '5000'
+        - macro: '{$SPEED}'
+          value: '30'
+      valuemaps:
+        - uuid: 131251cc75924d81ac0ac07091687716
+          name: 'Статус зажигания'
+          mappings:
+            - value: '1'
+              newvalue: 'Зажигание включено'
+            - value: '0'
+              newvalue: 'Зажигание выключено'
